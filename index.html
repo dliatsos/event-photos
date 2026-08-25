@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Share Your Memories</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100vh; width: 100%; }
+    body {
+      font-family: Arial, sans-serif;
+      color: white;
+      background-image: linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)), url("https://lh3.googleusercontent.com/d/18GHCIJ4ZDqaYydDfcAzqu2UBg0NsdAvo");
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+    }
+    .page {
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      padding: 35px 25px 30px;
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 24px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    }
+    .title { font-size: 48px; font-family: cursive; margin: 0 0 5px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+    .subtitle { font-size: 25px; font-weight: bold; letter-spacing: 2px; margin: 0 0 18px; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+    .description { font-size: 18px; line-height: 1.5; margin: 8px 0; }
+    .upload-box { margin-top: 28px; padding: 35px 20px; border: 2px dashed rgba(255, 255, 255, 0.85); border-radius: 20px; background: rgba(0, 0, 0, 0.35); }
+    .photo-icon { font-size: 48px; margin-bottom: 20px; }
+    .hidden-file-input { display: none; }
+    .action-button {
+      width: 100%; max-width: 320px; padding: 16px 25px; border: none; border-radius: 12px;
+      background: #f5c15d; color: #222; font-size: 19px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); transition: all 0.2s ease;
+    }
+    .action-button:hover { background: #ffd477; transform: translateY(-1px); }
+    .action-button:disabled { opacity: 0.6; cursor: wait; transform: none; }
+    .action-button.ready { background: #4caf50; color: white; }
+    .action-button.ready:hover { background: #66bb6a; }
+    #status { min-height: 28px; margin-top: 22px; font-size: 17px; font-weight: bold; }
+    .info { color: #e0e0e0; font-weight: normal; }
+    .success { color: #ffffff; }
+    .error { color: #ffcccc; }
+    .footer { margin-top: 28px; font-size: 16px; opacity: 0.95; }
+    @media (max-width: 600px) {
+      body { padding: 15px; }
+      .page { padding: 28px 18px 25px; border-radius: 20px; }
+      .title { font-size: 38px; }
+      .subtitle { font-size: 21px; }
+      .description { font-size: 16px; }
+      .upload-box { padding: 25px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="title">Share Your Memories</div>
+    <div class="subtitle">UPLOAD YOUR PHOTOS</div>
+    <div class="description">Share your photos from the event with us!</div>
+
+    <div class="upload-box">
+      <div class="photo-icon">📸</div>
+      <input class="hidden-file-input" type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" multiple>
+      <button class="action-button" id="actionBtn" onclick="handleButtonClick()">Select Photos</button>
+      <div id="status"></div>
+    </div>
+
+    <div class="footer">♥ Thank you for sharing your memories!</div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_lnK43BK_s_esE1QWEMdkHwiGWmqbiuoC1r6ZBkbVZJgAvHpzBmG0SlDYFX461JVAnw/exec";
+    const fileInput = document.getElementById("fileInput");
+    const actionBtn = document.getElementById("actionBtn");
+    const status = document.getElementById("status");
+
+    fileInput.addEventListener("change", function() {
+      if (fileInput.files.length > 0) {
+        const count = fileInput.files.length;
+        actionBtn.innerText = `Upload ${count} Photo${count > 1 ? 's' : ''}`;
+        actionBtn.classList.add("ready");
+        status.className = "info";
+        status.innerText = `${count} photo${count > 1 ? 's' : ''} ready to upload.`;
+      } else {
+        resetButton();
+      }
+    });
+
+    function handleButtonClick() {
+      if (fileInput.files.length === 0) {
+        fileInput.click();
+      } else {
+        uploadPhotos();
+      }
+    }
+
+    function resetButton() {
+      fileInput.value = "";
+      actionBtn.innerText = "Select Photos";
+      actionBtn.className = "action-button";
+      actionBtn.disabled = false;
+    }
+
+    function uploadPhotos() {
+      actionBtn.disabled = true;
+      actionBtn.innerText = "Uploading...";
+      status.className = "";
+      status.innerText = "Please wait while your photos are uploaded...";
+      uploadNextFile(Array.from(fileInput.files), 0);
+    }
+
+    function uploadNextFile(files, index) {
+      if (index >= files.length) {
+        status.className = "success";
+        status.innerText = "All photos uploaded successfully! 🎉";
+        resetButton();
+        return;
+      }
+
+      const file = files[index];
+      status.className = "";
+      status.innerText = `Uploading photo ${index + 1} of ${files.length}...`;
+
+      if (!file.type.startsWith("image/")) {
+        status.className = "error";
+        status.innerText = "Upload stopped. Only photos are allowed.";
+        resetButton();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        const payload = { name: file.name, mimeType: file.type, base64: base64Data };
+
+        fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            status.className = "error";
+            status.innerText = "Error: " + result.message;
+            resetButton();
+            return;
+          }
+          uploadNextFile(files, index + 1);
+        })
+        .catch(() => {
+          status.className = "error";
+          status.innerText = "Upload failed. Please try again.";
+          resetButton();
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
