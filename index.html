@@ -50,7 +50,17 @@
     .success { color: #ffffff; }
     .error { color: #ffcccc; }
     .footer { margin-top: 28px; font-size: 16px; opacity: 0.95; line-height: 1.5; }
-    .footer a { color: #ffffff; text-decoration: underline; font-weight: bold; transition: opacity 0.2s; }
+    .footer a {
+      color: #ffffff;
+      text-decoration: underline;
+      font-weight: bold;
+      cursor: pointer;
+      position: relative;
+      z-index: 10;
+      display: inline-block;
+      padding: 6px 12px;
+      transition: opacity 0.2s;
+    }
     .footer a:hover { opacity: 0.8; }
     @media (max-width: 600px) {
       body { padding: 15px; }
